@@ -2,7 +2,19 @@ const express = require("express");
 const router = express.Router();
 const Joi = require("Joi");
 
-const hotels = [];
+const hotels = [
+  // {
+  //   id: 1,
+  //   name: "Imperial Hotel",
+  //   address: "84 av des Champs-Élysées",
+  //   city: "Paris",
+  //   country: "France",
+  //   stars: 5,
+  //   hasSpa: true,
+  //   hasPool: true,
+  //   priceCategory: 3,
+  // },
+];
 
 // Joi Schema
 const hotel = Joi.object({
@@ -24,7 +36,9 @@ const hotel = Joi.object({
   priceCategory: Joi.number().min(1).max(3).required(),
 });
 
-// Middlewares
+// MIDDLEWARES
+
+// Check Schema
 const validRes = (req, res, next) => {
   const newHotel = req.body;
   const validRes = hotel.validate(newHotel);
@@ -33,6 +47,23 @@ const validRes = (req, res, next) => {
     return res.status(400).json({
       message: "Error 400",
       description: validRes.error.details[0].message,
+    });
+  }
+
+  next();
+};
+
+// Find hotel by ID
+const findHotel = (req, res, next) => {
+  const hotel = hotels.find((hotel) => {
+    return hotel.id.toString().toLowerCase() === req.params.id.toLowerCase();
+  });
+  req.hotel = hotel;
+
+  if (!hotel) {
+    res.status(404).json({
+      message: "Error 404",
+      description: "This hotel cannot be found in the database.",
     });
   }
 
@@ -58,6 +89,11 @@ router.post("/", validRes, (req, res) => {
     message: "New hotel added",
     hotel: { id: hotels.length, name: req.body.name },
   });
+});
+
+// Get hotel by ID
+router.get("/:id", findHotel, (req, res) => {
+  res.json(req.hotel);
 });
 
 module.exports = router;
