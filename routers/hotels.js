@@ -14,6 +14,28 @@ const hotels = [
   //   hasPool: true,
   //   priceCategory: 3,
   // },
+  // {
+  //   id: 2,
+  //   name: "The Queen",
+  //   address: "3 Darwin Street",
+  //   city: "London",
+  //   country: "England",
+  //   stars: 4,
+  //   hasSpa: true,
+  //   hasPool: false,
+  //   priceCategory: 3,
+  // },
+  // {
+  //   id: 3,
+  //   name: "Kiwi land",
+  //   address: "4587 George St.",
+  //   city: "Auckland",
+  //   country: "New-Zealand",
+  //   stars: 3,
+  //   hasSpa: false,
+  //   hasPool: true,
+  //   priceCategory: 2,
+  // },
 ];
 
 // Joi Schema
@@ -105,6 +127,51 @@ router.patch("/:id", findHotel, (req, res) => {
   });
   req.hotel.name = req.body.name;
   console.log(`Modified name of hotel ${req.params.id} to ${req.body.name}`);
+});
+
+// // Delete a hotel of the list
+// router.delete("/:id", findHotel, (req, res) => {
+//   hotels = hotels.filter((hotel) => {
+//     return hotel !== req.hotel;
+//   });
+
+//   res.json({
+//     message: "Hotel deleted",
+//     id: req.hotel.name,
+//     "hotel name": req.hotel.name,
+//     "updated list": hotels,
+//   });
+//   console.log(`${req.hotel.name} has been deleted from database`);
+// });
+
+// // Delete a hotel of the list
+// router.delete("/:id", findHotel, (req, res) => {
+//   const index = hotels.indexOf(req.hotel);
+
+//   delete hotels[index];
+
+//   res.json({
+//     message: "Hotel deleted",
+//     id: req.hotel.name,
+//     "hotel name": req.hotel.name,
+//     "updated list": hotels,
+//   });
+//   console.log(`${req.hotel.name} has been deleted from database`);
+// });
+
+// Delete a hotel of the list
+router.delete("/:id", findHotel, (req, res) => {
+  const index = hotels.indexOf(req.hotel);
+
+  hotels.splice(index, 1);
+
+  res.json({
+    message: "Hotel deleted",
+    id: req.hotel.id,
+    "hotel name": req.hotel.name,
+    "updated list": hotels,
+  });
+  console.log(`${req.hotel.name} has been deleted from database`);
 });
 
 module.exports = router;
