@@ -3,10 +3,12 @@ const app = express();
 const PORT = 8000;
 // routers
 const hotelsRouter = require("./routers/hotels");
+const restaurantsRouter = require("./routers/restaurants");
 
 // Middlewares
 app.use(express.json());
 app.use("/hotels", hotelsRouter);
+app.use("/restaurants", restaurantsRouter);
 
 // Error
 app.get("*", (_req, res) => {
