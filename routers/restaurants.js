@@ -19,7 +19,7 @@ const restaurants = [
 const restaurantSchema = Joi.object({
   name: Joi.string().min(1).max(50).required(),
   address: Joi.string().required(),
-  city: Joi.string().alphanum(),
+  city: Joi.string(),
   country: Joi.string().alphanum().required(),
   stars: Joi.number().min(1).max(5).required(),
   cuisine: Joi.string().alphanum().required(),
@@ -81,7 +81,7 @@ router.post("/", validRes, (req, res) => {
 
   res.status(201).json({
     message: "Restaurant added",
-    hotel: { id: restaurants.length, name: req.body.name },
+    restaurant: { id: restaurants.length, name: req.body.name },
   });
 });
 
@@ -98,6 +98,21 @@ router.patch("/:id", findRestaurant, (req, res) => {
   );
 });
 
-// TODO: Ajouter la possibilité d’effacer un restaurant (DELETE /restaurants/:id)
+// Delete a restaurant from the list
+router.delete("/:id", findRestaurant, (req, res) => {
+  const index = restaurants.indexOf(req.restaurant);
+
+  restaurants.splice(index, 1);
+
+  res.json({
+    message: "Restaurant deleted",
+    id: req.restaurant.id,
+    "restaurant name": req.restaurant.name,
+    "updated list": restaurants,
+  });
+  console.log(
+    `Restaurant : ${req.restaurant.name} -> has been deleted from database`
+  );
+});
 
 module.exports = router;
