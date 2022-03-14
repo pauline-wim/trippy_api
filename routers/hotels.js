@@ -96,4 +96,15 @@ router.get("/:id", findHotel, (req, res) => {
   res.json(req.hotel);
 });
 
+// Modify name of hotel
+router.patch("/:id", findHotel, (req, res) => {
+  res.json({
+    message: "Updated hotel name",
+    "old name": req.hotel.name,
+    "new name": req.body.name,
+  });
+  req.hotel.name = req.body.name;
+  console.log(`Modified name of hotel ${req.params.id} to ${req.body.name}`);
+});
+
 module.exports = router;
