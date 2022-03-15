@@ -3,16 +3,36 @@ const router = express.Router();
 const Joi = require("Joi");
 
 const restaurants = [
-  // {
-  //   id: 1,
-  //   name: "Les trois Mousquetaires",
-  //   address: "22 av des Champs-Élysées",
-  //   city: "Paris",
-  //   country: "France",
-  //   stars: 4,
-  //   cuisine: "french",
-  //   priceCategory: 3,
-  // },
+  {
+    id: 1,
+    name: "Les trois Mousquetaires",
+    address: "22 av des Champs-Élysées",
+    city: "Paris",
+    country: "France",
+    stars: 4,
+    cuisine: "french",
+    priceCategory: 3,
+  },
+  {
+    id: 2,
+    name: "The Fat Guy",
+    address: "47 Jackson Boulevard",
+    city: "New York",
+    country: "US",
+    stars: 5,
+    cuisine: "burger",
+    priceCategory: 1,
+  },
+  {
+    id: 3,
+    name: "Veggies",
+    address: "77 Avenir Street",
+    city: "Sydney",
+    country: "Australia",
+    stars: 5,
+    cuisine: "vegan",
+    priceCategory: 2,
+  },
 ];
 
 // Joi Schema
@@ -65,7 +85,7 @@ const maxID = (req, _res, next) => {
     return resto.id;
   });
 
-  const max = Math.max(...ids);
+  const max = Math.max.apply(null, ids);
   req.max = max;
 
   next();
@@ -78,6 +98,7 @@ router.get("/", (_req, res) => {
   } else {
     res.send("The list of restaurants is empty.");
   }
+  console.log("Request received");
 });
 
 // Get restaurant by ID
@@ -87,7 +108,7 @@ router.get("/:id", findRestaurant, (req, res) => {
 
 // Add a restaurant to the list of restaurants
 router.post("/", validRes, maxID, (req, res) => {
-  console.log("Request received");
+  console.log("Restaurant added");
 
   restaurants.push({ id: req.max + 1, ...req.body });
 
