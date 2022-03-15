@@ -127,23 +127,32 @@ const maxID = (req, _res, next) => {
 };
 
 // TODO: FILTERED REQUESTS
-// TODO: 2 "for" loops -> 1. Browse through array to visit each obj. -> 2. Check in req.query if there is any query & if so => check if they are valid by comparing w/ hotel obj.
-// TODO: Create adaptive function if (req.query) -> "for" loop to browse through array and check if they respect query params...
+// 2 "for" loops -> 1. Browse through array to visit each obj. -> 2. Check in req.query if there is any query & if so => check if they are valid by comparing w/ hotel obj.
 
 const filteredReq = (req, _res, next) => {
   const filteredHotels = [];
 
   hotels.map((hotel) => {
     for (const param in hotel) {
+      const hotelKey = param;
       const hotelParam = hotel[param];
       for (const property in req.query) {
-        if (hotelParam.toString().toLowerCase() === req.query[property]) {
-          filteredHotels.push(hotel);
+        if (
+          hotelKey.toString().toLowerCase() ===
+          property.toString().toLowerCase()
+        ) {
+          if (
+            hotelParam.toString().toLowerCase() ===
+            req.query[property].toString().toLowerCase()
+          ) {
+            return filteredHotels.push(hotel);
+          }
         }
       }
     }
   });
-
+  // TODO: Need to make it that the keys of each array are compared and not their value. Once the keys match then the value can be compared... STILL NEEDS WORK !
+  // !Problem when there is 2 query...
   req.filteredHotels = filteredHotels;
   console.log({ message: "Request received", filter: req.query });
 
