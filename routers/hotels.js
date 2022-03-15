@@ -128,34 +128,35 @@ const maxID = (req, _res, next) => {
 
 // TODO: FILTERED REQUESTS
 // TODO: 2 "for" loops -> 1. Browse through array to visit each obj. -> 2. Check in req.query if there is any query & if so => check if they are valid by comparing w/ hotel obj.
-// TODO: Create adaptive function if (req.query) -> "for" loop to browse through array and check if the respect query params...
+// TODO: Create adaptive function if (req.query) -> "for" loop to browse through array and check if they respect query params...
+
+const filteredReq = (req, _res, next) => {
+  const filteredHotels = [];
+
+  hotels.map((hotel) => {
+    for (const param in hotel) {
+      const hotelParam = hotel[param];
+      for (const property in req.query) {
+        if (hotelParam.toString().toLowerCase() === req.query[property]) {
+          filteredHotels.push(hotel);
+        }
+      }
+    }
+  });
+
+  req.filteredHotels = filteredHotels;
+  console.log({ message: "Request received", filter: req.query });
+
+  next();
+};
 
 // REQUESTS
 
 // !Get list of hotels
-router.get("/", (req, res) => {
+router.get("/", filteredReq, (req, res) => {
   if (hotels.length > 0) {
-    if (req.query.country && !req.query.price) {
-      // Find hotels by country
-      const hotelsByCountry = hotels.filter((hotel) => {
-        return hotel.country.toLowerCase() === req.query.country.toLowerCase();
-      });
-      res.json(hotelsByCountry);
-    } else if (req.query.price && !req.query.country) {
-      // Find hotels by price range
-      const hotelsByPrice = hotels.filter((hotel) => {
-        return hotel.priceCategory.toString() === req.query.price.toString();
-      });
-      res.json(hotelsByPrice);
-    } else if (req.query.price || req.query.country) {
-      // Filter hotels by price & country
-      const byPriceCountry = hotels.filter((hotel) => {
-        return (
-          hotel.country.toLowerCase() === req.query.country.toLowerCase() &&
-          hotel.priceCategory.toString() === req.query.price.toString()
-        );
-      });
-      res.json(byPriceCountry);
+    if (req.query) {
+      res.json(req.filteredHotels);
     } else {
       res.json(hotels);
     }
@@ -191,36 +192,6 @@ router.patch("/:id", findHotel, (req, res) => {
   req.hotel.name = req.body.name;
   console.log(`Modified name of hotel ${req.params.id} to ${req.body.name}`);
 });
-
-// // Delete a hotel of the list
-// router.delete("/:id", findHotel, (req, res) => {
-//   hotels = hotels.filter((hotel) => {
-//     return hotel !== req.hotel;
-//   });
-
-//   res.json({
-//     message: "Hotel deleted",
-//     id: req.hotel.name,
-//     "hotel name": req.hotel.name,
-//     "updated list": hotels,
-//   });
-//   console.log(`${req.hotel.name} has been deleted from database`);
-// });
-
-// // Delete a hotel of the list
-// router.delete("/:id", findHotel, (req, res) => {
-//   const index = hotels.indexOf(req.hotel);
-
-//   delete hotels[index];
-
-//   res.json({
-//     message: "Hotel deleted",
-//     id: req.hotel.name,
-//     "hotel name": req.hotel.name,
-//     "updated list": hotels,
-//   });
-//   console.log(`${req.hotel.name} has been deleted from database`);
-// });
 
 // Delete a hotel of the list
 router.delete("/:id", findHotel, (req, res) => {
