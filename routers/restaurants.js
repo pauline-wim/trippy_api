@@ -3,16 +3,16 @@ const router = express.Router();
 const Joi = require("Joi");
 
 const restaurants = [
-  //   {
-  //     id: 1,
-  //     name: "Les trois Mousquetaires",
-  //     address: "22 av des Champs-Élysées",
-  //     city: "Paris",
-  //     country: "France",
-  //     stars: 4,
-  //     cuisine: "french",
-  //     priceCategory: 3,
-  //   },
+  // {
+  //   id: 1,
+  //   name: "Les trois Mousquetaires",
+  //   address: "22 av des Champs-Élysées",
+  //   city: "Paris",
+  //   country: "France",
+  //   stars: 4,
+  //   cuisine: "french",
+  //   priceCategory: 3,
+  // },
 ];
 
 // Joi Schema
@@ -59,6 +59,18 @@ const findRestaurant = (req, res, next) => {
   next();
 };
 
+// Find highest ID in array
+const maxID = (req, _res, next) => {
+  const ids = restaurants.map((resto) => {
+    return resto.id;
+  });
+
+  const max = Math.max(...ids);
+  req.max = max;
+
+  next();
+};
+
 // Get list of restaurants
 router.get("/", (_req, res) => {
   if (restaurants.length > 0) {
@@ -74,14 +86,14 @@ router.get("/:id", findRestaurant, (req, res) => {
 });
 
 // Add a restaurant to the list of restaurants
-router.post("/", validRes, (req, res) => {
+router.post("/", validRes, maxID, (req, res) => {
   console.log("Request received");
 
-  restaurants.push({ id: restaurants.length + 1, ...req.body });
+  restaurants.push({ id: req.max + 1, ...req.body });
 
   res.status(201).json({
     message: "Restaurant added",
-    restaurant: { id: restaurants.length, name: req.body.name },
+    restaurant: { id: req.max + 1, name: req.body.name },
   });
 });
 

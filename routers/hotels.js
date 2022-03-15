@@ -92,6 +92,18 @@ const findHotel = (req, res, next) => {
   next();
 };
 
+// Find highest ID in array
+const maxID = (req, _res, next) => {
+  const ids = hotels.map((hotel) => {
+    return hotel.id;
+  });
+
+  const max = Math.max(...ids);
+  req.max = max;
+
+  next();
+};
+
 // Get list of hotels
 router.get("/", (_req, res) => {
   if (hotels.length > 0) {
@@ -102,14 +114,14 @@ router.get("/", (_req, res) => {
 });
 
 // Add a hotel to the list of hotels
-router.post("/", validRes, (req, res) => {
+router.post("/", validRes, maxID, (req, res) => {
   console.log("Request received");
 
-  hotels.push({ id: hotels.length + 1, ...req.body });
+  hotels.push({ id: req.max + 1, ...req.body });
 
   res.status(201).json({
     message: "New hotel added",
-    hotel: { id: hotels.length, name: req.body.name },
+    hotel: { id: req.max + 1, name: req.body.name },
   });
 });
 
