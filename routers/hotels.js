@@ -3,39 +3,61 @@ const router = express.Router();
 const Joi = require("Joi");
 
 const hotels = [
-  // {
-  //   id: 1,
-  //   name: "Imperial Hotel",
-  //   address: "84 av des Champs-Élysées",
-  //   city: "Paris",
-  //   country: "France",
-  //   stars: 5,
-  //   hasSpa: true,
-  //   hasPool: true,
-  //   priceCategory: 3,
-  // },
-  // {
-  //   id: 2,
-  //   name: "The Queen",
-  //   address: "3 Darwin Street",
-  //   city: "London",
-  //   country: "England",
-  //   stars: 4,
-  //   hasSpa: true,
-  //   hasPool: false,
-  //   priceCategory: 3,
-  // },
-  // {
-  //   id: 3,
-  //   name: "Kiwi land",
-  //   address: "4587 George St.",
-  //   city: "Auckland",
-  //   country: "New-Zealand",
-  //   stars: 3,
-  //   hasSpa: false,
-  //   hasPool: true,
-  //   priceCategory: 2,
-  // },
+  {
+    id: 1,
+    name: "Imperial Hotel",
+    address: "84 av des Champs-Élysées",
+    city: "Paris",
+    country: "France",
+    stars: 5,
+    hasSpa: true,
+    hasPool: true,
+    priceCategory: 3,
+  },
+  {
+    id: 4,
+    name: "Paris Hotel",
+    address: "84 av des Champs-Élysées",
+    city: "Paris",
+    country: "France",
+    stars: 5,
+    hasSpa: true,
+    hasPool: true,
+    priceCategory: 3,
+  },
+  {
+    id: 5,
+    name: "Champs-Élysées",
+    address: "84 av des Champs-Élysées",
+    city: "Paris",
+    country: "France",
+    stars: 5,
+    hasSpa: true,
+    hasPool: true,
+    priceCategory: 2,
+  },
+  {
+    id: 2,
+    name: "The Queen",
+    address: "3 Darwin Street",
+    city: "London",
+    country: "England",
+    stars: 4,
+    hasSpa: true,
+    hasPool: false,
+    priceCategory: 3,
+  },
+  {
+    id: 3,
+    name: "Kiwi land",
+    address: "4587 George St.",
+    city: "Auckland",
+    country: "New-Zealand",
+    stars: 3,
+    hasSpa: false,
+    hasPool: true,
+    priceCategory: 2,
+  },
 ];
 
 // Joi Schema
@@ -104,10 +126,39 @@ const maxID = (req, _res, next) => {
   next();
 };
 
-// Get list of hotels
-router.get("/", (_req, res) => {
+// TODO: FILTERED REQUESTS
+// TODO: 2 "for" loops -> 1. Browse through array to visit each obj. -> 2. Check in req.query if there is any query & if so => check if they are valid by comparing w/ hotel obj.
+// TODO: Create adaptive function if (req.query) -> "for" loop to browse through array and check if the respect query params...
+
+// REQUESTS
+
+// !Get list of hotels
+router.get("/", (req, res) => {
   if (hotels.length > 0) {
-    res.json(hotels);
+    if (req.query.country && !req.query.price) {
+      // Find hotels by country
+      const hotelsByCountry = hotels.filter((hotel) => {
+        return hotel.country.toLowerCase() === req.query.country.toLowerCase();
+      });
+      res.json(hotelsByCountry);
+    } else if (req.query.price && !req.query.country) {
+      // Find hotels by price range
+      const hotelsByPrice = hotels.filter((hotel) => {
+        return hotel.priceCategory.toString() === req.query.price.toString();
+      });
+      res.json(hotelsByPrice);
+    } else if (req.query.price || req.query.country) {
+      // Filter hotels by price & country
+      const byPriceCountry = hotels.filter((hotel) => {
+        return (
+          hotel.country.toLowerCase() === req.query.country.toLowerCase() &&
+          hotel.priceCategory.toString() === req.query.price.toString()
+        );
+      });
+      res.json(byPriceCountry);
+    } else {
+      res.json(hotels);
+    }
   } else {
     res.send("The list of hotels is empty.");
   }
