@@ -1,6 +1,12 @@
 const express = require("express");
 const app = express();
 const PORT = 8000;
+const dotenv = require("dotenv");
+dotenv.config({
+  path: "./config.env",
+});
+const { Pool } = require("pg");
+const Postgres = new Pool({ ssl: { rejectUnauthorized: false } });
 // routers
 const hotelsRouter = require("./routers/hotels");
 const restaurantsRouter = require("./routers/restaurants");
