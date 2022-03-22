@@ -1,64 +1,67 @@
 const express = require("express");
 const router = express.Router();
 const Joi = require("Joi");
+const { Pool } = require("pg");
 
-const hotels = [
-  {
-    id: 1,
-    name: "Imperial Hotel",
-    address: "84 av des Champs-Élysées",
-    city: "Paris",
-    country: "France",
-    stars: 5,
-    hasSpa: true,
-    hasPool: true,
-    priceCategory: 3,
-  },
-  {
-    id: 4,
-    name: "Paris Hotel",
-    address: "84 av des Champs-Élysées",
-    city: "Paris",
-    country: "France",
-    stars: 5,
-    hasSpa: true,
-    hasPool: true,
-    priceCategory: 3,
-  },
-  {
-    id: 5,
-    name: "Champs-Élysées",
-    address: "84 av des Champs-Élysées",
-    city: "Paris",
-    country: "France",
-    stars: 4,
-    hasSpa: true,
-    hasPool: true,
-    priceCategory: 2,
-  },
-  {
-    id: 2,
-    name: "The Queen",
-    address: "3 Darwin Street",
-    city: "London",
-    country: "England",
-    stars: 4,
-    hasSpa: true,
-    hasPool: false,
-    priceCategory: 3,
-  },
-  {
-    id: 3,
-    name: "Kiwi land",
-    address: "4587 George St.",
-    city: "Auckland",
-    country: "New-Zealand",
-    stars: 3,
-    hasSpa: false,
-    hasPool: true,
-    priceCategory: 2,
-  },
-];
+const Postgres = new Pool({ ssl: { rejectUnauthorized: false } });
+
+// const hotels = [
+//   {
+//     id: 1,
+//     name: "Imperial Hotel",
+//     address: "84 av des Champs-Élysées",
+//     city: "Paris",
+//     country: "France",
+//     stars: 5,
+//     hasSpa: true,
+//     hasPool: true,
+//     priceCategory: 3,
+//   },
+//   {
+//     id: 4,
+//     name: "Paris Hotel",
+//     address: "84 av des Champs-Élysées",
+//     city: "Paris",
+//     country: "France",
+//     stars: 5,
+//     hasSpa: true,
+//     hasPool: true,
+//     priceCategory: 3,
+//   },
+//   {
+//     id: 5,
+//     name: "Champs-Élysées",
+//     address: "84 av des Champs-Élysées",
+//     city: "Paris",
+//     country: "France",
+//     stars: 4,
+//     hasSpa: true,
+//     hasPool: true,
+//     priceCategory: 2,
+//   },
+//   {
+//     id: 2,
+//     name: "The Queen",
+//     address: "3 Darwin Street",
+//     city: "London",
+//     country: "England",
+//     stars: 4,
+//     hasSpa: true,
+//     hasPool: false,
+//     priceCategory: 3,
+//   },
+//   {
+//     id: 3,
+//     name: "Kiwi land",
+//     address: "4587 George St.",
+//     city: "Auckland",
+//     country: "New-Zealand",
+//     stars: 3,
+//     hasSpa: false,
+//     hasPool: true,
+//     priceCategory: 2,
+//   },
+// ];
 
 // Joi Schema
 const hotel = Joi.object({
@@ -98,18 +101,25 @@ const validRes = (req, res, next) => {
 };
 
 // Find hotel by ID
-const findHotel = (req, res, next) => {
-  const hotel = hotels.find((hotel) => {
-    return hotel.id.toString().toLowerCase() === req.params.id.toLowerCase();
-  });
-  req.hotel = hotel;
+const findHotel = async (req, res, next) => {
+  // const hotel = hotels.find((hotel) => {
+  //   return hotel.id.toString().toLowerCase() === req.params.id.toLowerCase();
+  // });
+  // req.hotel = hotel;
 
-  if (!hotel) {
-    res.status(404).json({
-      message: "Error 404",
-      description: "This hotel cannot be found in the database.",
-    });
-  }
+  // if (!hotel) {
+  //   res.status(404).json({
+  //     message: "Error 404",
+  //     description: "This hotel cannot be found in the database.",
+  //   });
+  // }
+
+  const hotel = await Postgres.query(
+    "SELECT * FROM hotels WHERE hotels.hotel_id=$1",
+    [req.params.id]
+  );
+
+  req.hotel = hotel.rows[0];
 
   next();
 };
@@ -127,12 +137,13 @@ const maxID = (req, _res, next) => {
 };
 
 // FILTERED REQUEST
-const filteredReq = (req, _res, next) => {
-  let result = hotels;
+const filteredReq = async (req, _res, next) => {
+  let result = await Postgres.query("SELECT * FROM hotels");
   const queryKeys = Object.keys(req.query);
 
   for (let i = 0; i < queryKeys.length; i++) {
-    result = result.filter((hotel) => {
+    result = result.rows.filter((hotel) => {
+      console.log(hotel[queryKeys[i]].toString().toLowerCase());
       return (
         hotel[queryKeys[i]].toString().toLowerCase() ===
         req.query[queryKeys[i]].toString().toLowerCase()
@@ -151,27 +162,64 @@ const filteredReq = (req, _res, next) => {
 
 // REQUESTS
 
-router.get("/", filteredReq, (req, res) => {
-  if (hotels.length > 0) {
-    if (req.query) {
-      res.json(req.filteredHotels);
-    } else {
-      res.json(hotels);
-    }
-  } else {
-    res.send("The list of hotels is empty.");
+router.get("/", filteredReq, async (req, res) => {
+  let hotels;
+  try {
+    hotels = await Postgres.query("SELECT * FROM hotels");
+  } catch (err) {
+    console.log(err);
+
+    return res.status(400).json({
+      message: "An error occured",
+    });
   }
+  if (req.query) {
+    res.json(req.filteredHotels);
+  } else {
+    res.json(hotels.rows);
+  }
+
+  // if (hotels.length > 0) {
+  //   if (req.query) {
+  //     res.json(req.filteredHotels);
+  //   } else {
+  //     res.json(hotels);
+  //   }
+  // } else {
+  //   res.send("The list of hotels is empty.");
+  // }
 });
 
 // Add a hotel to the list of hotels
-router.post("/", validRes, maxID, (req, res) => {
+router.post("/", validRes, async (req, res) => {
   console.log("Request received");
 
-  hotels.push({ id: req.max + 1, ...req.body });
+  // hotels.push({ id: req.max + 1, ...req.body });
 
-  res.status(201).json({
-    message: "New hotel added",
-    hotel: { id: req.max + 1, name: req.body.name },
+  // res.status(201).json({
+  //   message: "New hotel added",
+  //   hotel: { id: req.max + 1, name: req.body.name },
+  // });
+  try {
+    await Postgres.query(
+      "INSERT INTO hotels(name, address, city, country, stars, hasSpa, hasPool, priceCategory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)"[
+        (req.body.name,
+        req.body.address,
+        req.body.city,
+        req.body.country,
+        req.body.stars,
+        req.body.hasSpa,
+        req.body.hasPool,
+        req.body.priceCategory)
+      ]
+    );
+  } catch (err) {
+    return res.status(400).json({
+      message: `${err}`,
+    });
+  }
+  res.json({
+    message: `Hotel ${req.body.name} added to the database`,
   });
 });
 
