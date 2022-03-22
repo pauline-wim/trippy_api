@@ -31,7 +31,7 @@ const hotels = [
     address: "84 av des Champs-Élysées",
     city: "Paris",
     country: "France",
-    stars: 5,
+    stars: 4,
     hasSpa: true,
     hasPool: true,
     priceCategory: 2,
@@ -126,42 +126,31 @@ const maxID = (req, _res, next) => {
   next();
 };
 
-// TODO: FILTERED REQUESTS
-// 2 "for" loops -> 1. Browse through array to visit each obj. -> 2. Check in req.query if there is any query & if so => check if they are valid by comparing w/ hotel obj.
-
+// FILTERED REQUEST
 const filteredReq = (req, _res, next) => {
-  const filteredHotels = [];
+  let result = hotels;
+  const queryKeys = Object.keys(req.query);
 
-  hotels.map((hotel) => {
-    for (const param in hotel) {
-      const hotelKey = param;
-      const hotelParam = hotel[param];
-      for (const property in req.query) {
-        if (
-          hotelKey.toString().toLowerCase() ===
-          property.toString().toLowerCase()
-        ) {
-          if (
-            hotelParam.toString().toLowerCase() ===
-            req.query[property].toString().toLowerCase()
-          ) {
-            return filteredHotels.push(hotel);
-          }
-        }
-      }
-    }
+  for (let i = 0; i < queryKeys.length; i++) {
+    result = result.filter((hotel) => {
+      return (
+        hotel[queryKeys[i]].toString().toLowerCase() ===
+        req.query[queryKeys[i]].toString().toLowerCase()
+      );
+    });
+  }
+
+  req.filteredHotels = result;
+  console.log({
+    message: "Request received",
+    filter: req.query,
   });
-  // TODO: Need to make it that the keys of each array are compared and not their value. Once the keys match then the value can be compared... STILL NEEDS WORK !
-  // !Problem when there is 2 query...
-  req.filteredHotels = filteredHotels;
-  console.log({ message: "Request received", filter: req.query });
 
   next();
 };
 
 // REQUESTS
 
-// !Get list of hotels
 router.get("/", filteredReq, (req, res) => {
   if (hotels.length > 0) {
     if (req.query) {
